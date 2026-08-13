@@ -1,0 +1,62 @@
+{
+  "name": "@chikatina/casparser-js",
+  "version": "1.0.0",
+  "description": "Reads Indian consolidated account statements (CAMS, KFintech, NSDL, CDSL) in JavaScript",
+  "type": "module",
+  "license": "MIT",
+  "main": "./src/index.js",
+  "exports": {
+    ".": "./src/index.js",
+    "./analysis": "./src/analysis/index.js",
+    "./pdf": "./src/pdf/pdfjs.js",
+    "./package.json": "./package.json"
+  },
+  "bin": {
+    "casparser": "bin/casparser.js",
+    "casparser-js": "bin/casparser.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/chikatina/casparser-js.git"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "src",
+    "bin",
+    "schema",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "node --test \"test/*.test.js\"",
+    "schema": "node scripts/generate-schema.js"
+  },
+  "peerDependencies": {
+    "pdfjs-dist": ">=4"
+  },
+  "peerDependenciesMeta": {
+    "pdfjs-dist": {
+      "optional": true
+    }
+  },
+  "keywords": [
+    "cas",
+    "casparser",
+    "cams",
+    "kfintech",
+    "nsdl",
+    "cdsl",
+    "mutual-funds",
+    "demat",
+    "nps",
+    "india"
+  ],
+  "devDependencies": {
+    "pdfjs-dist": "^6.2.108"
+  }
+}

@@ -1,0 +1,264 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CASData",
+  "type": "object",
+  "properties": {
+    "statement_period": {
+      "$ref": "#/$defs/StatementPeriod"
+    },
+    "folios": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Folio"
+      }
+    },
+    "investor_info": {
+      "$ref": "#/$defs/InvestorInfo"
+    },
+    "cas_type": {
+      "type": "string"
+    },
+    "file_type": {
+      "type": "string"
+    },
+    "parse_warnings": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "statement_period",
+    "investor_info",
+    "cas_type",
+    "file_type"
+  ],
+  "$defs": {
+    "StatementPeriod": {
+      "title": "StatementPeriod",
+      "type": "object",
+      "properties": {
+        "from": {
+          "type": "string"
+        },
+        "to": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "from",
+        "to"
+      ]
+    },
+    "Folio": {
+      "title": "Folio",
+      "type": "object",
+      "properties": {
+        "folio": {
+          "type": "string"
+        },
+        "amc": {
+          "type": "string"
+        },
+        "PAN": {
+          "type": "string"
+        },
+        "KYC": {
+          "type": "string"
+        },
+        "PANKYC": {
+          "type": "string"
+        },
+        "schemes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Scheme"
+          }
+        }
+      },
+      "required": [
+        "folio",
+        "amc"
+      ]
+    },
+    "Scheme": {
+      "title": "Scheme",
+      "type": "object",
+      "properties": {
+        "scheme": {
+          "type": "string"
+        },
+        "advisor": {
+          "type": "string"
+        },
+        "rta_code": {
+          "type": "string"
+        },
+        "rta": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "isin": {
+          "type": "string"
+        },
+        "amfi": {
+          "type": "string"
+        },
+        "nominees": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "open": {
+          "type": "string",
+          "description": "A decimal number, as a string so nothing is rounded away"
+        },
+        "close": {
+          "type": "string",
+          "description": "A decimal number, as a string so nothing is rounded away"
+        },
+        "close_calculated": {
+          "type": "string",
+          "description": "A decimal number, as a string so nothing is rounded away"
+        },
+        "valuation": {
+          "$ref": "#/$defs/SchemeValuation"
+        },
+        "transactions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/TransactionData"
+          }
+        }
+      },
+      "required": [
+        "scheme",
+        "rta_code",
+        "rta",
+        "open",
+        "close",
+        "close_calculated",
+        "valuation"
+      ]
+    },
+    "SchemeValuation": {
+      "title": "SchemeValuation",
+      "type": "object",
+      "properties": {
+        "date": {
+          "type": "string",
+          "description": "A calendar date, or the text the statement printed"
+        },
+        "nav": {
+          "type": "string",
+          "description": "A decimal number, as a string so nothing is rounded away"
+        },
+        "cost": {
+          "type": "string",
+          "description": "A decimal number, as a string so nothing is rounded away"
+        },
+        "value": {
+          "type": "string",
+          "description": "A decimal number, as a string so nothing is rounded away"
+        }
+      },
+      "required": [
+        "date",
+        "nav",
+        "value"
+      ]
+    },
+    "TransactionData": {
+      "title": "TransactionData",
+      "type": "object",
+      "properties": {
+        "date": {
+          "type": "string",
+          "description": "A calendar date, or the text the statement printed"
+        },
+        "description": {
+          "type": "string"
+        },
+        "amount": {
+          "type": "string",
+          "description": "A decimal number, as a string so nothing is rounded away"
+        },
+        "units": {
+          "type": "string",
+          "description": "A decimal number, as a string so nothing is rounded away"
+        },
+        "nav": {
+          "type": "string",
+          "description": "A decimal number, as a string so nothing is rounded away"
+        },
+        "balance": {
+          "type": "string",
+          "description": "A decimal number, as a string so nothing is rounded away"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "PURCHASE",
+            "PURCHASE_SIP",
+            "REDEMPTION",
+            "DIVIDEND_PAYOUT",
+            "DIVIDEND_REINVEST",
+            "SWITCH_IN",
+            "SWITCH_IN_MERGER",
+            "SWITCH_OUT",
+            "SWITCH_OUT_MERGER",
+            "STT_TAX",
+            "STAMP_DUTY_TAX",
+            "TDS_TAX",
+            "SEGREGATION",
+            "GIFT_IN",
+            "GIFT_OUT",
+            "MISC",
+            "UNKNOWN",
+            "REVERSAL"
+          ]
+        },
+        "dividend_rate": {
+          "type": "string",
+          "description": "A decimal number, as a string so nothing is rounded away"
+        },
+        "gift_folio": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "date",
+        "description",
+        "type"
+      ]
+    },
+    "InvestorInfo": {
+      "title": "InvestorInfo",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "address": {
+          "type": "string"
+        },
+        "mobile": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "email",
+        "address",
+        "mobile"
+      ]
+    }
+  }
+}

@@ -1,0 +1,347 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "NSDLCASData",
+  "type": "object",
+  "properties": {
+    "accounts": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/DematAccount"
+      }
+    },
+    "statement_period": {
+      "$ref": "#/$defs/StatementPeriod"
+    },
+    "investor_info": {
+      "$ref": "#/$defs/InvestorInfo"
+    },
+    "file_type": {
+      "type": "string"
+    },
+    "nps": {
+      "$ref": "#/$defs/NPSAccount"
+    },
+    "parse_warnings": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "statement_period",
+    "investor_info",
+    "file_type"
+  ],
+  "$defs": {
+    "DematAccount": {
+      "title": "DematAccount",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "dp_id": {
+          "type": "string"
+        },
+        "client_id": {
+          "type": "string"
+        },
+        "folios": {
+          "type": "integer"
+        },
+        "balance": {
+          "type": "string",
+          "description": "A decimal number, as a string so nothing is rounded away"
+        },
+        "owners": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/DematOwner"
+          }
+        },
+        "equities": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Equity"
+          }
+        },
+        "mutual_funds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/MutualFund"
+          }
+        },
+        "bonds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Bond"
+          }
+        }
+      },
+      "required": [
+        "name",
+        "type",
+        "folios",
+        "balance"
+      ]
+    },
+    "DematOwner": {
+      "title": "DematOwner",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "PAN": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "PAN"
+      ]
+    },
+    "Equity": {
+      "title": "Equity",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "isin": {
+          "type": "string"
+        },
+        "num_shares": {
+          "type": "string",
+          "description": "A decimal number, as a string so nothing is rounded away"
+        },
+        "price": {
+          "type": "string",
+          "description": "A decimal number, as a string so nothing is rounded away"
+        },
+        "value": {
+          "type": "string",
+          "description": "A decimal number, as a string so nothing is rounded away"
+        },
+        "symbol": {
+          "type": "string"
+        },
+        "exchange": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "isin",
+        "num_shares",
+        "price",
+        "value"
+      ]
+    },
+    "MutualFund": {
+      "title": "MutualFund",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "isin": {
+          "type": "string"
+        },
+        "amfi": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "balance": {
+          "type": "string",
+          "description": "A decimal number, as a string so nothing is rounded away"
+        },
+        "nav": {
+          "type": "string",
+          "description": "A decimal number, as a string so nothing is rounded away"
+        },
+        "value": {
+          "type": "string",
+          "description": "A decimal number, as a string so nothing is rounded away"
+        },
+        "avg_cost": {
+          "type": "string",
+          "description": "A decimal number, as a string so nothing is rounded away"
+        },
+        "total_cost": {
+          "type": "string",
+          "description": "A decimal number, as a string so nothing is rounded away"
+        },
+        "ucc": {
+          "type": "string"
+        },
+        "folio": {
+          "type": "string"
+        },
+        "pnl": {
+          "type": "string",
+          "description": "A decimal number, as a string so nothing is rounded away"
+        },
+        "return": {
+          "type": "string",
+          "description": "A decimal number, as a string so nothing is rounded away"
+        }
+      },
+      "required": [
+        "isin",
+        "balance",
+        "nav",
+        "value"
+      ]
+    },
+    "Bond": {
+      "title": "Bond",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "isin": {
+          "type": "string"
+        },
+        "num_bonds": {
+          "type": "string",
+          "description": "A decimal number, as a string so nothing is rounded away"
+        },
+        "value": {
+          "type": "string",
+          "description": "A decimal number, as a string so nothing is rounded away"
+        },
+        "face_value": {
+          "type": "string",
+          "description": "A decimal number, as a string so nothing is rounded away"
+        },
+        "coupon_rate": {
+          "type": "string",
+          "description": "A decimal number, as a string so nothing is rounded away"
+        },
+        "coupon_frequency": {
+          "type": "string"
+        },
+        "maturity_date": {
+          "type": "string"
+        },
+        "market_price": {
+          "type": "string",
+          "description": "A decimal number, as a string so nothing is rounded away"
+        }
+      },
+      "required": [
+        "isin",
+        "num_bonds",
+        "value"
+      ]
+    },
+    "StatementPeriod": {
+      "title": "StatementPeriod",
+      "type": "object",
+      "properties": {
+        "from": {
+          "type": "string"
+        },
+        "to": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "from",
+        "to"
+      ]
+    },
+    "InvestorInfo": {
+      "title": "InvestorInfo",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "address": {
+          "type": "string"
+        },
+        "mobile": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "email",
+        "address",
+        "mobile"
+      ]
+    },
+    "NPSAccount": {
+      "title": "NPSAccount",
+      "type": "object",
+      "properties": {
+        "pran": {
+          "type": "string"
+        },
+        "nps_sp": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string",
+          "description": "A decimal number, as a string so nothing is rounded away"
+        },
+        "schemes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/NPSScheme"
+          }
+        }
+      },
+      "required": [
+        "value"
+      ]
+    },
+    "NPSScheme": {
+      "title": "NPSScheme",
+      "type": "object",
+      "properties": {
+        "scheme": {
+          "type": "string"
+        },
+        "fund_manager": {
+          "type": "string"
+        },
+        "tier": {
+          "type": "string"
+        },
+        "asset_class": {
+          "type": "string"
+        },
+        "units": {
+          "type": "string",
+          "description": "A decimal number, as a string so nothing is rounded away"
+        },
+        "nav": {
+          "type": "string",
+          "description": "A decimal number, as a string so nothing is rounded away"
+        },
+        "value": {
+          "type": "string",
+          "description": "A decimal number, as a string so nothing is rounded away"
+        }
+      },
+      "required": [
+        "scheme",
+        "units",
+        "nav",
+        "value"
+      ]
+    }
+  }
+}
