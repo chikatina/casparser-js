@@ -39,8 +39,8 @@
     "node": ">=20"
   },
   "scripts": {
-    "test": "node --test \"test/*.test.js\"",
-    "test:coverage": "node --test --experimental-test-coverage \"test/*.test.js\"",
+    "test": "node --test",
+    "test:coverage": "node --test --experimental-test-coverage",
     "schema": "node scripts/generate-schema.js",
     "schema:check": "node scripts/generate-schema.js && git diff --exit-code schema/",
     "prepublishOnly": "npm test && npm run schema"
