@@ -1,0 +1,76 @@
+name: Bug Report
+description: Report an issue or parsing failure
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        > **Privacy Warning:** Consolidated Account Statements (CAS) contain personal financial data (PAN, folio numbers, bank accounts, balances).
+        > **Never** upload raw statement PDFs or share passwords in issues. Scrub or synthesize any snippets you post.
+
+  - type: dropdown
+    id: issuer
+    attributes:
+      label: Statement Type
+      description: Where did the statement originate?
+      options:
+        - CAMS Detailed
+        - CAMS Summary
+        - KFintech Detailed
+        - KFintech Summary
+        - NSDL CAS
+        - CDSL CAS
+        - Other / Unsure
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: Describe the bug or failure clearly.
+      placeholder: Error message, unexpected value, or wrong field extraction.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to Reproduce
+      description: Minimal code snippet or CLI invocation.
+      placeholder: |
+        import { readCasPdf } from '@chikatina/casparser-js';
+        // ...
+    validations:
+      required: false
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: What should have happened instead?
+    validations:
+      required: false
+
+  - type: input
+    id: node-version
+    attributes:
+      label: Node.js Version
+      placeholder: "e.g., v22.12.0"
+    validations:
+      required: true
+
+  - type: input
+    id: pdfjs-version
+    attributes:
+      label: pdfjs-dist Version
+      placeholder: "e.g., 4.10.38"
+    validations:
+      required: false
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Stack Trace / Console Logs
+      render: shell

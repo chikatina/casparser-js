@@ -9,6 +9,7 @@
     ".": "./src/index.js",
     "./analysis": "./src/analysis/index.js",
     "./pdf": "./src/pdf/pdfjs.js",
+    "./isin-db": "./src/isin-db.js",
     "./package.json": "./package.json"
   },
   "bin": {
@@ -19,6 +20,11 @@
     "type": "git",
     "url": "git+https://github.com/chikatina/casparser-js.git"
   },
+  "homepage": "https://github.com/chikatina/casparser-js#readme",
+  "bugs": {
+    "url": "https://github.com/chikatina/casparser-js/issues"
+  },
+  "author": "chikatina <https://github.com/chikatina>",
   "publishConfig": {
     "access": "public"
   },
@@ -34,7 +40,10 @@
   },
   "scripts": {
     "test": "node --test \"test/*.test.js\"",
-    "schema": "node scripts/generate-schema.js"
+    "test:coverage": "node --test --experimental-test-coverage \"test/*.test.js\"",
+    "schema": "node scripts/generate-schema.js",
+    "schema:check": "node scripts/generate-schema.js && git diff --exit-code schema/",
+    "prepublishOnly": "npm test && npm run schema"
   },
   "peerDependencies": {
     "pdfjs-dist": ">=4"

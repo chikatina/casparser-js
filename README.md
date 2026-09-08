@@ -1,10 +1,16 @@
 # casparser-js
 
+[![npm version](https://img.shields.io/npm/v/@chikatina/casparser-js.svg?style=flat-square)](https://www.npmjs.com/package/@chikatina/casparser-js)
+[![npm downloads](https://img.shields.io/npm/dm/@chikatina/casparser-js.svg?style=flat-square)](https://www.npmjs.com/package/@chikatina/casparser-js)
+[![CI](https://img.shields.io/github/actions/workflow/status/chikatina/casparser-js/ci.yml?branch=master&style=flat-square&label=CI)](https://github.com/chikatina/casparser-js/actions/workflows/ci.yml)
+[![License](https://img.shields.io/github/license/chikatina/casparser-js.svg?style=flat-square)](https://github.com/chikatina/casparser-js/blob/master/LICENSE)
+[![Node](https://img.shields.io/node/v/@chikatina/casparser-js.svg?style=flat-square)](https://nodejs.org/)
+
 Reads Indian consolidated account statements in JavaScript. A statement from CAMS,
 KFintech, NSDL or CDSL goes in; folios, schemes, transactions, demat holdings and pension
 holdings come out.
 
-This is a port of [casparser](https://github.com/codereverser/casparser), which is Python.
+This is a JavaScript port of [casparser](https://github.com/codereverser/casparser), which is Python.
 Everything it does, this does, with two things deliberately left to the caller: which PDF
 reader to use, and whether to supply the reference database that fills in the codes a
 statement does not print.
@@ -15,14 +21,14 @@ should not have to travel to be read.
 
 ## Install
 
-```
+```bash
 npm install @chikatina/casparser-js
 ```
 
 The parsing runs on [pdf.js](https://mozilla.github.io/pdf.js/), which is a peer
 dependency so an application that already bundles a copy does not end up with two:
 
-```
+```bash
 npm install pdfjs-dist
 ```
 
@@ -77,8 +83,8 @@ megabytes it is a choice rather than a dependency:
 
 ```js
 import { DatabaseSync } from 'node:sqlite';
-import { SqlIsinDb, setIsinProvider } from 'casparser-js';
-import { SqlIsinDb as _ } from 'casparser-js/isin-db';
+import { SqlIsinDb, setIsinProvider } from '@chikatina/casparser-js';
+// or via subpath: import { SqlIsinDb } from '@chikatina/casparser-js/isin-db';
 
 const db = new DatabaseSync('isin.db');
 setIsinProvider(new SqlIsinDb({ query: (sql, params) => db.prepare(sql).all(params) }));
@@ -97,7 +103,7 @@ a small curated table.
 ## Capital gains
 
 ```js
-import { CapitalGainsReport } from 'casparser-js';
+import { CapitalGainsReport } from '@chikatina/casparser-js';
 
 const report = new CapitalGainsReport(data);
 report.getFyList();                       // ['FY2025-26', 'FY2024-25']
@@ -119,7 +125,7 @@ donor and are not in the statement.
 
 ## Command line
 
-```
+```bash
 npx casparser-js statement.pdf -p ABCDE1234F
 npx casparser-js statement.pdf -p ABCDE1234F -o out.json
 npx casparser-js statement.pdf -p ABCDE1234F -o out.csv -g --gains-112a FY2025-26
@@ -229,6 +235,15 @@ The indexation branch for debt schemes now fires. The original compared a scheme
 string against an enumeration member, which is never equal, so indexed cost of acquisition
 could not be reached.
 
+## Contributing & Security
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for local development instructions, test guidelines,
+and architecture notes.
+
+For security policies and private vulnerability disclosures, see [SECURITY.md](SECURITY.md).
+
+All releases and changes are logged in [CHANGELOG.md](CHANGELOG.md).
+
 ## Licence
 
-MIT, as the original is.
+MIT, as the original is. See [LICENSE](LICENSE).

@@ -9,7 +9,7 @@
  * library should not make for you:
  *
  *     import * as pdfjsLib from 'pdfjs-dist';
- *     import { setPdfBackend, createPdfjsBackend, readCasPdf } from 'casparser-js';
+ *     import { setPdfBackend, createPdfjsBackend, readCasPdf } from '@chikatina/casparser-js';
  *
  *     setPdfBackend(createPdfjsBackend(pdfjsLib));
  *     const data = await readCasPdf(bytes, 'ABCDE1234F');
@@ -70,6 +70,11 @@ export {
   navSearch,
   setIsinProvider,
 } from './isin.js';
+
+export {
+  SchemeNotFoundError,
+  SqlIsinDb,
+} from './isin-db.js';
 
 export {
   CII,
