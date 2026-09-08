@@ -61,6 +61,9 @@
         "amc": {
           "type": "string"
         },
+        "name": {
+          "type": "string"
+        },
         "PAN": {
           "type": "string"
         },

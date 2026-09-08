@@ -275,6 +275,26 @@ export const AMC_RE = /^(.+?\s+(?:MF|Mutual\s*Fund|Fund\s*House))$/i;
  */
 export const DATE_CELL_RE = /^\s*(\d{1,2}[-\s]*[A-Za-z]{3}[-\s]*\d{4})/;
 
+/**
+ * A transaction description too wide for the Transaction column wraps onto its own
+ * physical line directly below the row.
+ */
+export const CONTINUATION_MAX_GAP = 10.0;
+
+/**
+ * The description text of a wrapped-continuation line, or null.
+ *
+ * A continuation has content in the Transaction column and nowhere else.
+ * Any glyph in Date or a numeric column means the line is something else.
+ */
+export function continuationText(cells) {
+  const filled = Object.entries(cells).filter(([, v]) => v && v.trim()).map(([k]) => k);
+  if (filled.length === 1 && filled[0] === 'Transaction') {
+    return cells.Transaction.trim() || null;
+  }
+  return null;
+}
+
 /** Parses a printed amount, treating parentheses as a negative sign. */
 export function toDecimal(text) {
   if (text === null || text === undefined) return null;
@@ -429,8 +449,25 @@ const NAME_TERMINATOR_RE = new RegExp(
 );
 const ADVISOR_CODE_RE = /\b(ARN-?\d+|INA\d+)\b/i;
 
-function isHeaderLine(text) {
+export function isHeaderLine(text) {
   return HEADER_MARKER_RE.test(text) || RTA_TOKEN_RE.test(text) || SCHEME_CODE_RE.test(text);
+}
+
+export const HOLDER_NAME_CHARS_RE = /^[A-Z][A-Za-z .'&-]*$/;
+
+/**
+ * Holder-name line: newer CAMS/KFin DETAILED templates print the folio holder's
+ * name on the line right after `Folio No:`.
+ */
+export function looksLikeHolderName(text) {
+  const t = String(text ?? '').trim().replace(/\s+/g, ' ');
+  const words = t.split(' ').filter(Boolean);
+  if (words.length < 2 || words.length > 8 || t.length > 80) return false;
+  if (!HOLDER_NAME_CHARS_RE.test(t)) return false;
+  if (!words.every((w) => w === '&' || (w.length > 0 && w[0] === w[0].toUpperCase()))) return false;
+  const hits = words.filter((w) => TXN_HEADER_LABELS.has(w)).length;
+  if (hits >= TXN_MIN_HITS) return false;
+  return !isHeaderLine(t);
 }
 
 /** True when the line leaves a marker's value dangling onto the next one. */
@@ -615,6 +652,7 @@ export async function parse(document, fileType = FileType.UNKNOWN) {
   let currentFolio = null;
   let currentScheme = null;
   let lastColumns = [];
+  let holderNameLinesLeft = 0;
 
   // The scheme header is the only part of the grammar that wraps unpredictably;
   // everything else is a single anchor that never wraps. So rather than stitching
@@ -641,6 +679,12 @@ export async function parse(document, fileType = FileType.UNKNOWN) {
       columns = lastColumns;
     }
 
+    // Wrapped-description adjacency trackers (issue #118): page-line index and
+    // baseline of the last line that emitted (or extended) a transaction. Per-page —
+    // a table row never splits across a page break, so a wrap cannot either.
+    let contLineIdx = -2;
+    let contBaseline = 0.0;
+
     for (let i = 0; i < page.lines.length; i += 1) {
       const line = page.lines[i];
       const text = line.text;
@@ -660,6 +704,7 @@ export async function parse(document, fileType = FileType.UNKNOWN) {
         }
         headerBuffer = [];
         headerActive = false;
+        holderNameLinesLeft = 0;
         continue;
       }
 
@@ -673,11 +718,12 @@ export async function parse(document, fileType = FileType.UNKNOWN) {
         if (match) {
           // The internal " / " is preserved, matching the original's output.
           const folioNumber = match[1].trim();
-          const key = `${currentAmc || 'UNKNOWN'} ${folioNumber}`;
+          const key = `${currentAmc || 'UNKNOWN'} ${folioNumber}`;
           if (!folios.has(key)) {
             folios.set(key, new Folio({
               folio: folioNumber,
               amc: currentAmc || 'UNKNOWN',
+              name: null,
               PAN: match[2] || '',
               KYC: match[3] || null,
               PANKYC: match[4] || null,
@@ -686,6 +732,9 @@ export async function parse(document, fileType = FileType.UNKNOWN) {
           }
           currentFolio = folios.get(key);
           currentScheme = null;
+          // The folio line repeats for every scheme, so a name missed once (page break)
+          // is retried on the next one.
+          holderNameLinesLeft = (currentFolio && currentFolio.name === null) ? 2 : 0;
           if (headerActive) {
             const warning = abandonedRegionWarning(headerBuffer, 'folio boundary');
             if (warning) parseWarnings.push(warning);
@@ -693,6 +742,20 @@ export async function parse(document, fileType = FileType.UNKNOWN) {
           headerBuffer = [];
           headerActive = true;
           continue;
+        }
+      }
+
+      // Folio holder name (issue #145): observe — never consume — the first line(s)
+      // after a folio header. The line still flows into the scheme-header region buffer
+      // below, where it is inert (it carries no header markers).
+      if (holderNameLinesLeft > 0 && currentFolio !== null) {
+        holderNameLinesLeft -= 1;
+        const stripped = text.trim();
+        if (looksLikeHolderName(stripped)) {
+          currentFolio.name = stripped.replace(/\s+/g, ' ');
+          holderNameLinesLeft = 0;
+        } else if (isHeaderLine(stripped) || OPEN_BAL_RE.test(stripped)) {
+          holderNameLinesLeft = 0;
         }
       }
 
@@ -781,7 +844,31 @@ export async function parse(document, fileType = FileType.UNKNOWN) {
         const rawDate = (cells.Date || '').trim();
         const description = (cells.Transaction || '').trim();
         const dateMatch = DATE_CELL_RE.exec(rawDate);
-        if (!dateMatch) continue;
+        if (!dateMatch) {
+          // Wrapped description continuation (issue #118):
+          // a dateless, Transaction-column-only line directly below the line that
+          // emitted the last transaction is the rest of its description. Merge and
+          // re-classify on the merged text, mirroring row creation below.
+          const tail = continuationText(cells);
+          if (
+            i === contLineIdx + 1
+            && (contBaseline - line.baseline) <= CONTINUATION_MAX_GAP
+            && currentScheme.transactions.length > 0
+            && tail
+          ) {
+            const txn = currentScheme.transactions[currentScheme.transactions.length - 1];
+            txn.description = `${txn.description} ${tail}`;
+            const [txnType, dividendRate] = getTransactionType(txn.description, txn.units);
+            txn.type = txnType;
+            txn.dividend_rate = dividendRate;
+            if (txnType === TransactionType.GIFT_IN || txnType === TransactionType.GIFT_OUT) {
+              txn.gift_folio = extractGiftFolio(txn.description);
+            }
+            contLineIdx = i;
+            contBaseline = line.baseline;
+          }
+          continue;
+        }
         // A dated row with no description is not a transaction.
         if (!description) continue;
 
@@ -793,9 +880,16 @@ export async function parse(document, fileType = FileType.UNKNOWN) {
         let nav = toDecimal(cells.Price || cells.NAV || '');
         const balance = toDecimal(cells['Unit Balance'] || '');
 
-        // A row with neither an amount nor units is not a transaction: it is usually a
-        // stray date in a footnote.
-        if (amount === null && units === null) continue;
+        // A dated row with no amount AND no units is either an informational marker row
+        // or a stray footnote date. Marker rows — ***Registration of Nominee***,
+        // address/KYC updates, Transmission/Transformation restatements — are emitted
+        // as MISC transactions (amount/units null) so the statement's event trail survives
+        // (issue #118). Corpus-wide every such row either starts with "***" or prints a
+        // running Unit Balance; a stray footnote date ("Effective from 01-Apr-2019…") does
+        // neither, and is skipped.
+        if (amount === null && units === null && balance === null && !description.startsWith('***')) {
+          continue;
+        }
 
         // Some older templates omit the per-row price but always carry the amount and the
         // units, so derive the NAV rather than leaving the gains side with nothing.
@@ -803,7 +897,9 @@ export async function parse(document, fileType = FileType.UNKNOWN) {
           nav = amount.div(units).quantize('0.0001');
         }
 
-        const [txnType, dividendRate] = getTransactionType(description, units);
+        const [txnType, dividendRate] = (amount === null && units === null)
+          ? [TransactionType.MISC, null]
+          : getTransactionType(description, units);
         const giftFolio = (txnType === TransactionType.GIFT_IN || txnType === TransactionType.GIFT_OUT)
           ? extractGiftFolio(description)
           : null;
@@ -822,6 +918,8 @@ export async function parse(document, fileType = FileType.UNKNOWN) {
           dividend_rate: dividendRate,
           gift_folio: giftFolio,
         }));
+        contLineIdx = i;
+        contBaseline = line.baseline;
       }
     }
   }

@@ -149,7 +149,7 @@ CASData
   folios            [ Folio ]
 
 Folio
-  folio, amc, PAN, KYC, PANKYC
+  folio, amc, name, PAN, KYC, PANKYC
   schemes           [ Scheme ]
 
 Scheme

@@ -154,6 +154,7 @@ export const Scheme = defineModel('Scheme', [
 export const Folio = defineModel('Folio', [
   field('folio', 'str'),
   field('amc', 'str'),
+  field('name', 'str', null),
   field('PAN', 'str', null),
   field('KYC', 'str', null),
   field('PANKYC', 'str', null),

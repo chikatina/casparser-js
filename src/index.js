@@ -19,7 +19,7 @@
  * else parses. See `setIsinProvider`.
  */
 
-export const VERSION = '1.0.0';
+export const VERSION = '1.1.0';
 
 export { readCasPdf } from './parsers/index.js';
 export { cas2csv, cas2csvSummary, cas2json, isClose } from './parsers/utils.js';

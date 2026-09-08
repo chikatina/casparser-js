@@ -1,6 +1,6 @@
 {
   "name": "@chikatina/casparser-js",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Reads Indian consolidated account statements (CAMS, KFintech, NSDL, CDSL) in JavaScript",
   "type": "module",
   "license": "MIT",
