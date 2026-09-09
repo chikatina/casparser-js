@@ -98,6 +98,10 @@ export function fixtureBytes(name) {
   return path ? new Uint8Array(fs.readFileSync(path)) : null;
 }
 
+export function fixturePassword(name) {
+  return process.env[name] || '';
+}
+
 /** Runs the command line in-process, capturing what it prints. */
 export async function runCli(args) {
   const { main } = await import('../bin/casparser.js');

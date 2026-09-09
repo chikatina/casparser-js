@@ -13,7 +13,7 @@ import {
   assertAccountBalanceCloses, assertDematAccountWellFormed, assertEquityWellFormed,
   assertMutualFundWellFormed,
 } from './_assertions.js';
-import { fixtureBytes, fixturePath, loadPdfBackend, runCli, tempDir } from './_helpers.js';
+import { fixtureBytes, fixturePassword, fixturePath, loadPdfBackend, runCli } from './_helpers.js';
 
 const EXPECTED_ACCOUNTS = 3;
 
@@ -41,7 +41,7 @@ before(async () => {
     fixture = { skip: 'CDSL_CAS_FILE_1 is not set' };
     return;
   }
-  fixture = { data: await readCasPdf(bytes, process.env.CDSL_CAS_PASSWORD || '') };
+  fixture = { data: await readCasPdf(bytes, fixturePassword('CDSL_CAS_PASSWORD')) };
 });
 
 describe('the statement', () => {
@@ -107,7 +107,7 @@ describe('output', () => {
   it('keeps the account schema through a JSON round trip', async (t) => {
     if (fixture.skip) return t.skip(fixture.skip);
     const raw = await readCasPdf(
-      fixtureBytes('CDSL_CAS_FILE_1'), process.env.CDSL_CAS_PASSWORD || '', { output: 'json' },
+      fixtureBytes('CDSL_CAS_FILE_1'), fixturePassword('CDSL_CAS_PASSWORD'), { output: 'json' },
     );
     const data = JSON.parse(raw);
     assert.equal(data.file_type, 'CDSL');
@@ -121,7 +121,7 @@ describe('the command line', () => {
     const file = fixturePath('CDSL_CAS_FILE_1');
     if (!ready || !file) return t.skip('CDSL_CAS_FILE_1 is not set, or pdf.js is absent');
 
-    const { code, output } = await runCli([file, '-p', process.env.CDSL_CAS_PASSWORD || '', '-a']);
+    const { code, output } = await runCli([file, '-p', fixturePassword('CDSL_CAS_PASSWORD'), '-a']);
     assert.equal(code, 0);
     assert.ok(output.includes('Statement Period :'));
     assert.ok(output.includes('CDSL'));

@@ -34,6 +34,10 @@ jobs:
         with:
           languages: ${{ matrix.language }}
           queries: security-extended,security-and-quality
+          config: |
+            paths-ignore:
+              - 'test/**'
+              - '**/*.test.js'
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v4
