@@ -110,8 +110,8 @@ export function getTransactionType(description, units) {
  */
 export function getParsedSchemeName(scheme) {
   let name = String(scheme || '');
-  name = name.replace(/\((?:formerly|erstwhile)[^)]*\)/gi, '').trim();
-  name = name.replace(/\((?:Demat|Non-Demat)[^)]*\)?/gi, '').trim();
+  name = name.replace(/\((?:formerly|erstwhile)[^()]{0,500}\)/gi, '').trim();
+  name = name.replace(/\((?:Demat|Non-Demat)[^()]{0,500}\)?/gi, '').trim();
   name = name.replace(/\s+/g, ' ').trim();
   return name.replace(/[^a-zA-Z0-9_)]+$/, '').trim();
 }
