@@ -37,7 +37,7 @@ const STP_RE = /\bs\s*t\s*p\b|systematic\s+transfer/i;
 const GIFT_FOLIO_RE = /Folio\s+No\s*[:.]\s*(\d+)/i;
 
 const INSTALMENT_RE = /instal+ment/i;
-const SYSTEMATIC_INVEST_RE = /\bsys(?:tematic|\.)?[\s-]*invest/i;
+const SYSTEMATIC_INVEST_RE = /\bsys(?:\.|\b)[\w\s.-]{0,20}\binvest/i;
 const REVERSAL_RE = /reversal|rejection|dishonoured|mismatch|insufficient\s+balance|payment\s+not\s+received/i;
 
 /** The counterparty folio named in a gift description, or null. */
@@ -57,15 +57,13 @@ export function getTransactionType(description, units) {
   const text = String(description || '').toLowerCase();
   const unitsValue = units === null || units === undefined ? null : Decimal.from(units);
 
-  if (DIVIDEND_KEYWORD_RE.test(text)) {
-    const rateMatch = DIVIDEND_RATE_RE.exec(text);
-    if (rateMatch) {
-      dividendRate = Decimal.parse(rateMatch[1]);
-      return [
-        REINVEST_RE.test(text) ? TransactionType.DIVIDEND_REINVEST : TransactionType.DIVIDEND_PAYOUT,
-        dividendRate,
-      ];
-    }
+  const rateMatch = DIVIDEND_RATE_RE.exec(text);
+  if (rateMatch && DIVIDEND_KEYWORD_RE.test(text.slice(0, rateMatch.index))) {
+    dividendRate = Decimal.parse(rateMatch[1]);
+    return [
+      REINVEST_RE.test(text) ? TransactionType.DIVIDEND_REINVEST : TransactionType.DIVIDEND_PAYOUT,
+      dividendRate,
+    ];
   }
 
   if (unitsValue === null) {

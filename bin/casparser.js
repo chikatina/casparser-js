@@ -284,8 +284,9 @@ function printSummary(data, { includeZeroFolios = false, outputFilename = null }
   console.log(`Error   : ${String(errors).padStart(4)} schemes`);
 
   if (outputFilename) {
-    fs.writeFileSync(outputFilename, `${table}\n`, 'utf-8');
-    console.log(`File saved : ${outputFilename}`);
+    const savedPath = path.resolve(outputFilename);
+    fs.writeFileSync(savedPath, `${table}\n`, 'utf-8');
+    console.log(`File saved : ${savedPath}`);
   }
 }
 
@@ -343,15 +344,17 @@ function printQuarterly(report) {
 }
 
 function saveGains112a(report, fy, outputPath) {
-  const wanted = String(fy).toUpperCase();
+  const wanted = String(fy || '').toUpperCase().trim();
   const available = report.getFyList();
-  if (!available.includes(wanted)) {
-    console.log(`Warning: no capital gains found for ${wanted}.`);
+  const matchedFy = available.find((item) => item.toUpperCase() === wanted);
+  if (!matchedFy) {
+    const sanitized = wanted.replace(/[^A-Z0-9_-]/g, '');
+    console.log(`Warning: no capital gains found for ${sanitized || 'the requested financial year'}.`);
     return;
   }
   const base = outputPath.slice(0, outputPath.length - path.extname(outputPath).length);
-  const filename = `${base}-${wanted}-gains-112a.csv`;
-  fs.writeFileSync(filename, report.generate112aCsvData(wanted), 'utf-8');
+  const filename = `${base}-${matchedFy}-gains-112a.csv`;
+  fs.writeFileSync(filename, report.generate112aCsvData(matchedFy), 'utf-8');
   console.log(`gains report (112a) saved : ${filename}`);
 }
 
@@ -470,11 +473,11 @@ function parseArgs(argv) {
     const arg = argv[i];
     switch (arg) {
       case '-p': options.password = argv[++i] ?? ''; break;
-      case '-o': case '--output': options.output = argv[++i] ?? null; break;
+      case '-o': case '--output': options.output = argv[++i] ? path.normalize(String(argv[i])) : null; break;
       case '-s': case '--summary': options.summary = true; break;
       case '-a': case '--include-all': options.includeAll = true; break;
       case '-g': case '--gains': options.gains = true; break;
-      case '--gains-112a': options.gains112a = argv[++i] ?? ''; break;
+      case '--gains-112a': options.gains112a = argv[++i] ? String(argv[i]).replace(/[^a-zA-Z0-9_-]/g, '') : ''; break;
       case '--force-pdfminer': options.forcePdfminer = true; break;
       case '-h': case '--help': options.help = true; break;
       case '--version': options.version = true; break;

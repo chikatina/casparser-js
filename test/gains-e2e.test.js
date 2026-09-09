@@ -13,7 +13,7 @@ import { readCasPdf } from '../src/parsers/index.js';
 import { CapitalGainsReport } from '../src/analysis/index.js';
 import { IncompleteCASError } from '../src/exceptions.js';
 import { Decimal } from '../src/decimal.js';
-import { fixtureBytes, fixturePath, loadPdfBackend, runCli, tempDir } from './_helpers.js';
+import { fixtureBytes, fixturePassword, fixturePath, loadPdfBackend, runCli, tempDir } from './_helpers.js';
 
 let ready = false;
 let fixture = { skip: 'not loaded' };
@@ -29,7 +29,7 @@ before(async () => {
     fixture = { skip: 'KFINTECH_CAS_FILE_NEW is not set' };
     return;
   }
-  fixture = { data: await readCasPdf(bytes, process.env.KFINTECH_CAS_PASSWORD || '') };
+  fixture = { data: await readCasPdf(bytes, fixturePassword('KFINTECH_CAS_PASSWORD')) };
 });
 
 describe('the report', () => {
@@ -71,7 +71,7 @@ describe('an incomplete statement', () => {
     const bytes = fixtureBytes('CAMS_CAS_FILE');
     if (!bytes) return t.skip('CAMS_CAS_FILE is not set');
 
-    const data = await readCasPdf(bytes, process.env.CAMS_CAS_PASSWORD || '');
+    const data = await readCasPdf(bytes, fixturePassword('CAMS_CAS_PASSWORD'));
     const hasOpeningBalance = data.folios.some((folio) => folio.schemes.some(
       (scheme) => Decimal.from(scheme.open).gte(Decimal.parse('0.01')) && scheme.transactions.length,
     ));
@@ -88,7 +88,7 @@ describe('the command line', () => {
 
     const output = path.join(tempDir('casparser-gains-'), 'gains.csv');
     const { code } = await runCli([
-      file, '-p', process.env.KFINTECH_CAS_PASSWORD || '', '-g', '--gains-112a', 'FY2020-21',
+      file, '-p', fixturePassword('KFINTECH_CAS_PASSWORD'), '-g', '--gains-112a', 'FY2020-21',
       '-o', output,
     ]);
     // Nought is success; two is "the statement is incomplete", which is also a valid

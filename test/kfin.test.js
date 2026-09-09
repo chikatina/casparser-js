@@ -14,7 +14,7 @@ import {
   assertFolioWellFormed, assertInvestorInfoComplete, assertSchemeNameClean,
   assertSchemeTransactionUnitsClose, assertSchemeValuationArithmetic, assertSchemeWellFormed,
 } from './_assertions.js';
-import { fixtureBytes, fixturePath, loadPdfBackend, runCli, tempDir } from './_helpers.js';
+import { fixtureBytes, fixturePassword, fixturePath, loadPdfBackend, runCli, tempDir } from './_helpers.js';
 
 const DETAILED = {
   main: { folios: 17, schemes: 30, from: '01-Jan-1990', to: '31-Mar-2021' },
@@ -29,7 +29,7 @@ async function load(fileVar) {
   if (!ready) return { skip: 'pdf.js is not installed' };
   const bytes = fixtureBytes(fileVar);
   if (!bytes) return { skip: `${fileVar} is not set` };
-  return { data: await readCasPdf(bytes, process.env.KFINTECH_CAS_PASSWORD || '') };
+  return { data: await readCasPdf(bytes, fixturePassword('KFINTECH_CAS_PASSWORD')) };
 }
 
 describe('KFintech detailed', () => {
@@ -135,7 +135,7 @@ describe('the command line, KFintech paths', () => {
 
     const output = path.join(tempDir('casparser-kfin-'), 'out.json');
     const { code, output: printed } = await runCli([
-      file, '-p', process.env.KFINTECH_CAS_PASSWORD || '', '-o', output,
+      file, '-p', fixturePassword('KFINTECH_CAS_PASSWORD'), '-o', output,
     ]);
     assert.equal(code, 0, printed);
     assert.equal(JSON.parse(fs.readFileSync(output, 'utf-8')).file_type, 'KFINTECH');
@@ -143,10 +143,11 @@ describe('the command line, KFintech paths', () => {
 
   it('reports a wrong password cleanly', async (t) => {
     const file = fixturePath('KFINTECH_CAS_FILE');
-    if (!ready || !file || !process.env.CAMS_CAS_PASSWORD) {
+    const wrongPassword = fixturePassword('CAMS_CAS_PASSWORD');
+    if (!ready || !file || !wrongPassword) {
       return t.skip('KFINTECH_CAS_FILE or CAMS_CAS_PASSWORD is not set');
     }
-    const { code, output } = await runCli([file, '-p', process.env.CAMS_CAS_PASSWORD]);
+    const { code, output } = await runCli([file, '-p', wrongPassword]);
     assert.notEqual(code, 0);
     assert.ok(output.includes('Incorrect PDF password!'));
   });

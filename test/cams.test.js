@@ -21,7 +21,7 @@ import {
   assertFolioWellFormed, assertInvestorInfoComplete, assertSchemeNameClean,
   assertSchemeTransactionUnitsClose, assertSchemeValuationArithmetic, assertSchemeWellFormed,
 } from './_assertions.js';
-import { fixtureBytes, fixturePath, loadPdfBackend, runCli, tempDir } from './_helpers.js';
+import { fixtureBytes, fixturePassword, fixturePath, loadPdfBackend, runCli, tempDir } from './_helpers.js';
 
 const DETAILED = {
   main: { folios: 10, schemes: 14, from: '01-Apr-2018', to: '30-Jun-2018' },
@@ -91,7 +91,7 @@ describe('CAMS detailed', () => {
   it('keeps the identifiers through a JSON round trip', async (t) => {
     if (fixture.skip) return t.skip(fixture.skip);
     const raw = await readCasPdf(
-      fixtureBytes('CAMS_CAS_FILE'), process.env.CAMS_CAS_PASSWORD || '', { output: 'json' },
+      fixtureBytes('CAMS_CAS_FILE'), fixturePassword('CAMS_CAS_PASSWORD'), { output: 'json' },
     );
     const data = JSON.parse(raw);
     assert.equal(data.file_type, 'CAMS');
@@ -122,7 +122,7 @@ describe('CAMS detailed', () => {
       },
     });
     try {
-      await readCasPdf(fixtureBytes('CAMS_CAS_FILE'), process.env.CAMS_CAS_PASSWORD || '');
+      await readCasPdf(fixtureBytes('CAMS_CAS_FILE'), fixturePassword('CAMS_CAS_PASSWORD'));
     } finally {
       setPdfBackend(backend);
     }
@@ -201,7 +201,7 @@ describe('the command line', () => {
 
     const directory = tempDir('casparser-cli-');
     const output = path.join(directory, 'out.json');
-    const { code, out } = await runCli([file, '-p', process.env.CAMS_CAS_PASSWORD || '', '-o', output])
+    const { code, out } = await runCli([file, '-p', fixturePassword('CAMS_CAS_PASSWORD'), '-o', output])
       .then((result) => ({ code: result.code, out: result.output }));
 
     assert.equal(code, 0, out);
@@ -215,7 +215,7 @@ describe('the command line', () => {
 
     const output = path.join(tempDir('casparser-cli-'), 'out.csv');
     const { code, output: printed } = await runCli([
-      file, '-p', process.env.CAMS_CAS_PASSWORD || '', '-o', output,
+      file, '-p', fixturePassword('CAMS_CAS_PASSWORD'), '-o', output,
     ]);
     assert.equal(code, 0, printed);
     const content = fs.readFileSync(output, 'utf-8');
@@ -228,7 +228,7 @@ describe('the command line', () => {
     const file = fixturePath('CAMS_CAS_FILE');
     if (!ready || !file) return t.skip('CAMS_CAS_FILE is not set, or pdf.js is absent');
 
-    const { code, output } = await runCli([file, '-p', process.env.CAMS_CAS_PASSWORD || '', '-a']);
+    const { code, output } = await runCli([file, '-p', fixturePassword('CAMS_CAS_PASSWORD'), '-a']);
     assert.equal(code, 0);
     assert.ok(output.includes('Statement Period :'));
   });
