@@ -20,10 +20,14 @@
 import { Decimal } from './decimal.js';
 
 let provider = null;
+const directIsinCache = new Map();
+const navCache = new Map();
 
 /** Installs the ISIN database this process should use. Pass `null` to remove it. */
 export function setIsinProvider(next) {
   provider = next || null;
+  directIsinCache.clear();
+  navCache.clear();
 }
 
 export function getIsinProvider() {
@@ -39,6 +43,14 @@ function callProvider(method, ...args) {
   }
 }
 
+function getDirectIsin(isin) {
+  if (!isin) return null;
+  if (directIsinCache.has(isin)) return directIsinCache.get(isin);
+  const rows = callProvider('directIsinLookup', isin);
+  directIsinCache.set(isin, rows);
+  return rows;
+}
+
 /**
  * Resolves `(isin, amfi, type)` for a scheme.
  *
@@ -51,7 +63,7 @@ export function isinSearch(schemeName, rta, rtaCode, isin = null) {
   if (direct && direct.isin) return [direct.isin, direct.amfi_code ?? null, direct.type ?? null];
 
   if (isin) {
-    const rows = callProvider('directIsinLookup', isin);
+    const rows = getDirectIsin(isin);
     if (rows && rows.length) {
       const row = rows[0];
       return [row.isin ?? null, row.amfi_code ?? null, row.type ?? null];
@@ -75,7 +87,7 @@ export function batchIsinMetadata(isins) {
   if (!unique.size) return result;
 
   for (const isin of unique) {
-    const rows = callProvider('directIsinLookup', isin);
+    const rows = getDirectIsin(isin);
     if (rows && rows.length) {
       const row = rows[0];
       result.set(isin, [row.amfi_code ?? null, row.type ?? null]);
@@ -109,8 +121,12 @@ export function batchEquitySymbols(isins) {
 
 /** The scheme's 31-Jan-2018 net asset value, used for grandfathered capital gains. */
 export function navSearch(isin) {
+  if (!isin) return null;
+  if (navCache.has(isin)) return navCache.get(isin);
   const value = callProvider('navLookup', isin);
-  return value === null || value === undefined ? null : Decimal.from(value);
+  const result = value === null || value === undefined ? null : Decimal.from(value);
+  navCache.set(isin, result);
+  return result;
 }
 
 /**

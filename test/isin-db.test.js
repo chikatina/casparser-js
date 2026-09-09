@@ -176,4 +176,45 @@ describe('database lookups', { skip: !DatabaseSync && 'node:sqlite is unavailabl
     assert.equal(found.get('INE111A07011').symbol, null);
     assert.ok(!found.has('INE000X00X00'));
   });
+
+  it('caches direct ISIN and NAV lookups and clears on provider change', async () => {
+    const { isinSearch, navSearch, setIsinProvider } = await import('../src/isin.js');
+    let directCalls = 0;
+    let navCalls = 0;
+
+    const mockProvider = {
+      isinLookup: () => null,
+      directIsinLookup: (isin) => {
+        directCalls += 1;
+        return [{ isin, amfi_code: '12345', type: 'EQUITY' }];
+      },
+      navLookup: (isin) => {
+        navCalls += 1;
+        return '25.50';
+      },
+    };
+
+    setIsinProvider(mockProvider);
+
+    // First calls query the provider
+    assert.deepEqual(isinSearch('Test', 'CAMS', 'C1', 'INF123456789'), ['INF123456789', '12345', 'EQUITY']);
+    assert.equal(directCalls, 1);
+    assert.ok(navSearch('INF123456789').eq(Decimal.parse('25.50')));
+    assert.equal(navCalls, 1);
+
+    // Second calls hit the cache
+    assert.deepEqual(isinSearch('Test', 'CAMS', 'C1', 'INF123456789'), ['INF123456789', '12345', 'EQUITY']);
+    assert.equal(directCalls, 1);
+    assert.ok(navSearch('INF123456789').eq(Decimal.parse('25.50')));
+    assert.equal(navCalls, 1);
+
+    // Resetting provider clears the cache
+    setIsinProvider(mockProvider);
+    assert.deepEqual(isinSearch('Test', 'CAMS', 'C1', 'INF123456789'), ['INF123456789', '12345', 'EQUITY']);
+    assert.equal(directCalls, 2);
+    assert.ok(navSearch('INF123456789').eq(Decimal.parse('25.50')));
+    assert.equal(navCalls, 2);
+
+    setIsinProvider(null);
+  });
 });
