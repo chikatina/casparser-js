@@ -24,6 +24,20 @@
 import { CASParseError, IncorrectPasswordError } from '../exceptions.js';
 import { isNonLatinFont, stripFontSubsetPrefix } from './backend.js';
 
+// Polyfill Promise.withResolvers for Node < 22 or older runtimes where
+// pdfjs-dist relies on Promise.withResolvers.
+if (typeof Promise.withResolvers !== 'function') {
+  Promise.withResolvers = function withResolvers() {
+    let resolve;
+    let reject;
+    const promise = new Promise((res, rej) => {
+      resolve = res;
+      reject = rej;
+    });
+    return { promise, resolve, reject };
+  };
+}
+
 /**
  * pdf.js reports a run's `height` as the em size. The glyph bounding box the parsers
  * expect is closer to the cap height, and that ratio feeds the gap threshold that decides

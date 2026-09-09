@@ -154,6 +154,22 @@ describe('transaction type', () => {
       assert.ok(rate.eq(D(expectedRate)), description);
     }
   });
+
+  it('is safe against catastrophic backtracking (ReDoS)', () => {
+    const evilDividend = 'idcw ' + 'div. '.repeat(5000) + 'tail';
+    const start1 = performance.now();
+    const res1 = getTransactionType(evilDividend, D('10'));
+    const elapsed1 = performance.now() - start1;
+    assert.equal(res1[0], TransactionType.PURCHASE);
+    assert.ok(elapsed1 < 100, `Dividend regex took ${elapsed1}ms`);
+
+    const evilSys = 'sys ' + 'sys '.repeat(5000) + 'tail';
+    const start2 = performance.now();
+    const res2 = getTransactionType(evilSys, D('10'));
+    const elapsed2 = performance.now() - start2;
+    assert.equal(res2[0], TransactionType.PURCHASE);
+    assert.ok(elapsed2 < 100, `Systematic regex took ${elapsed2}ms`);
+  });
 });
 
 describe('folio header guard', () => {
