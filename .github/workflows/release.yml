@@ -35,7 +35,18 @@ jobs:
           npm run schema
           git diff --exit-code schema/
 
+      - name: Verify npm credentials
+        run: npm whoami
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
       - name: Publish package with provenance
-        run: npm publish --provenance --access public
+        run: |
+          CURRENT_VERSION=$(node -p "require('./package.json').version")
+          if npm view "@chikatina/casparser-js@$CURRENT_VERSION" version > /dev/null 2>&1; then
+            echo "Version $CURRENT_VERSION is already published to npm; skipping."
+            exit 0
+          fi
+          npm publish --provenance --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
