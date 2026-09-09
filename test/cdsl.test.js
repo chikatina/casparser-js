@@ -13,7 +13,7 @@ import {
   assertAccountBalanceCloses, assertDematAccountWellFormed, assertEquityWellFormed,
   assertMutualFundWellFormed,
 } from './_assertions.js';
-import { fixtureBytes, fixturePassword, fixturePath, loadPdfBackend, runCli, tempDir } from './_helpers.js';
+import { fixtureBytes, fixturePassword, fixturePath, loadPdfBackend, runCli } from './_helpers.js';
 
 const EXPECTED_ACCOUNTS = 3;
 
