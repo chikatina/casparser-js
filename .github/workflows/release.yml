@@ -13,6 +13,7 @@ jobs:
   publish:
     name: Publish to npm
     runs-on: ubuntu-latest
+    environment: npm-packagebuilder
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
@@ -21,7 +22,6 @@ jobs:
         uses: actions/setup-node@v7
         with:
           node-version: 22.x
-          registry-url: 'https://registry.npmjs.org'
 
       - name: Upgrade npm to latest for Trusted Publishing OIDC support
         run: npm install -g npm@latest
@@ -37,11 +37,11 @@ jobs:
           npm run schema
           git diff --exit-code schema/
 
-      - name: Publish package via Trusted Publishing with provenance
+      - name: Stage package on npm via Trusted Publishing with provenance
         run: |
           CURRENT_VERSION=$(node -p "require('./package.json').version")
           if npm view "@chikatina/casparser-js@$CURRENT_VERSION" version > /dev/null 2>&1; then
             echo "Version $CURRENT_VERSION is already published on npm; skipping."
             exit 0
           fi
-          npm publish --provenance --access public
+          npm stage publish --provenance --access public
